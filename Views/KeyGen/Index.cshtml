@@ -1,0 +1,114 @@
+﻿@{
+    ViewData["Title"] = "Key Split / Combine";
+    var components = ViewBag.Components as string[] ?? new string[3];
+    var kcvList = ViewBag.ComponentKCVs as string[] ?? new string[3];
+    var ckcvList = ViewBag.ComponentCKCVs as string[] ?? new string[3];
+    string algorithm = ViewBag.Algorithm as string ?? "AES";
+    bool forceOdd = ViewBag.ForceOdd != null && (bool)ViewBag.ForceOdd;
+    string[] keyLength = new[] { "16", "24", "32" };
+}
+
+<div class="container mt-5">
+    <h2>Key Split / Combine</h2>
+    <hr />
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+
+    <form method="post">
+        <div class="row mb-3">
+            <div class="col-12 col-md-8 mb-2">
+                <label>Combined Key (Hex)</label>
+                <input name="combinedKeyHex" value="@ViewBag.CombinedKey" class="form-control" placeholder="(Split için doldur)" />
+            </div>
+            <div class="col-12 col-md-4 mb-2">
+                <label>Combined KCV</label>
+                <input readonly class="form-control" value="@ViewBag.KCV" />
+            </div>
+            @if (algorithm == "AES")
+            {
+                <div class="col-12 col-md-4 mb-2">
+                    <label>Combined CKCV</label>
+                    <input readonly class="form-control" value="@ViewBag.CKCV" />
+                </div>
+            }
+        </div>
+        <div class="row mb-3">
+            <div class="col-6 col-md-3">
+                <label>Algorithm</label>
+                <select name="algorithm" class="form-select">
+                    <option value="AES" selected="@(algorithm == "AES")">AES</option>
+                    <option value="3DES" selected="@(algorithm == "3DES")">3DES</option>
+                    <option value="DES" selected="@(algorithm == "DES")">DES</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label>Parity Bits</label>
+                <div>
+                    <input type="radio" name="forceOdd" value="true" @(forceOdd ? "checked" : null) /> Force Odd
+                    <input type="radio" name="forceOdd" value="false" @(!forceOdd ? "checked" : null) /> Ignore
+                </div>
+            </div>
+
+        </div>
+        <div class="col-12 col-md-6 mb-2">
+            <label>Generate Key </label><br />
+            <button formaction="/KeyGen/Generate?length=8" formmethod="post" class="btn btn-outline-secondary btn-sm me-2">Generate 64 bit</button>
+            <button formaction="/KeyGen/Generate?length=16" formmethod="post" class="btn btn-outline-secondary btn-sm me-2">Generate 128 bit</button>
+            <button formaction="/KeyGen/Generate?length=24" formmethod="post" class="btn btn-outline-secondary btn-sm me-2">Generate 192 bit</button>
+            <button formaction="/KeyGen/Generate?length=32" formmethod="post" class="btn btn-outline-secondary btn-sm">Generate 256 bit</button>
+        </div>
+
+        <script>
+            function hideComponent(idx) {
+                var input = document.getElementById("component" + idx);
+                if (input) {
+                    input.type = "password";
+                    input.readOnly = true; // bir daha açılmaz/güncellenmez
+                }
+            }
+        </script>
+        @for (int i = 0; i < 3; i++)
+        {
+            <div class="row mb-2 align-items-center">
+                <div class="col-md-6">
+                    <label>Component @(i + 1)</label>
+                    <input id="component@(i + 1)" name="component@(i + 1)" value="@components[i]" class="form-control" type="text" />
+                </div>
+                <div class="col-md-2">
+                        @foreach (var length in keyLength)
+                        {
+                            <button type="submit" formaction="/KeyGen/GenerateComp?which=@(i + 1)&length=@length&algorithm=@algorithm&forceOdd=@forceOdd"
+                                    formmethod="post" class="btn btn-outline-secondary btn-sm">
+                            Generate Component @(i + 1) @length
+                            </button>
+                        }
+                   
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-warning btn-sm" onclick="hideComponent(@(i + 1))">Gizle</button>
+                </div>
+                <div class="col-md-2">
+                    <label>KCV</label>
+                    <input readonly class="form-control" value="@kcvList[i]" />
+                </div>
+                @if (algorithm == "AES")
+                {
+                    <div class="col-md-2">
+                        <label>CKCV</label>
+                        <input readonly class="form-control" value="@ckcvList[i]" />
+                    </div>
+                }
+            </div>
+        }
+    
+
+
+        <div class="mb-3">
+            <button formaction="/KeyGen/Split" formmethod="post" class="btn btn-primary">Split</button>
+            <button formaction="/KeyGen/Combine" formmethod="post" class="btn btn-success ms-2">Combine</button>
+        </div>
+    </form>
+</div>

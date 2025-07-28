@@ -1,0 +1,74 @@
+﻿@{
+    ViewBag.Title = "Shamir Secret Sharing";
+    var shares = ViewBag.Shares as string[];
+    var total = ViewBag.Total ?? 5;
+    var threshold = ViewBag.Threshold ?? 3;
+    var secretInput = ViewBag.SecretInput ?? "";
+    var format = ViewBag.Format ?? "text";
+}
+
+<h3>Shamir Secret Sharing</h3>
+
+<form asp-action="Split" method="post" class="mb-4">
+    <div class="row g-2 mb-2">
+        <div class="col-md-6">
+            <label class="form-label">Secret / Key</label>
+            <input name="secretInput" type="text" value="@secretInput" class="form-control" autocomplete="off" required />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Format</label>
+            <select name="format" class="form-select">
+                <option value="text" selected="@(format == "text" ? "selected" : null)">Text</option>
+                <option value="hex" selected="@(format == "hex" ? "selected" : null)">Hex</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Kişi (n)</label>
+            <input name="total" type="number" min="2" max="10" value="@total" class="form-control" required />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Threshold (t)</label>
+            <input name="threshold" type="number" min="2" max="@total" value="@threshold" class="form-control" required />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Key Parçala</button>
+</form>
+
+@if (shares != null)
+{
+    <h5>Key Parçaları (Shares):</h5>
+    <form asp-action="Recover" method="post" class="mb-3">
+        <input type="hidden" name="format" value="@format" />
+        <div class="row g-2 mb-2">
+            @for (int i = 0; i < shares.Length; i++)
+            {
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Share @(i+1)</label>
+                    <div class="input-group">
+                        <input name="shares" type="text" value="@shares[i]" class="form-control" autocomplete="off" />
+                        <button type="button" class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText('@shares[i]')">Kopyala</button>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="mb-2">
+            <small>
+                <b>Dikkat:</b> <span class="text-warning">Anahtarı tekrar oluşturmak için en az @threshold farklı share girilmelidir.</span>
+            </small>
+        </div>
+        <button type="submit" class="btn btn-success">Anahtarı Birleştir</button>
+    </form>
+}
+
+@if (ViewBag.RecoveredSecret != null)
+{
+    <div class="alert alert-info mt-3">
+        <b>Birleştirilmiş Key / Secret:</b>
+        <span style="font-family:monospace; white-space: pre-wrap;">@ViewBag.RecoveredSecret</span>
+    </div>
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
