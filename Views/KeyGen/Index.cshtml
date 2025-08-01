@@ -16,12 +16,31 @@
     {
         <div class="alert alert-danger">@ViewBag.Error</div>
     }
-
+    <script>
+        function ShowKey() {
+            var input = document.querySelector('input[name="combinedKeyHex"]');
+            if (input) {
+                input.type = "text";
+            }
+        }
+        function HideKey() {
+            var input = document.querySelector('input[name="combinedKeyHex"]');
+            if (input) {
+                input.type = "password";
+            }
+            }
+    </script>
     <form method="post">
         <div class="row mb-3">
             <div class="col-12 col-md-8 mb-2">
                 <label>Combined Key (Hex)</label>
-                <input name="combinedKeyHex" value="@ViewBag.CombinedKey" class="form-control" placeholder="(Split için doldur)" />
+                <input name="combinedKeyHex" type="password" value="@ViewBag.CombinedKey" class="form-control" placeholder="(Split için doldur)" />
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-warning btn-sm" onclick="ShowKey()">Göster</button>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-warning btn-sm" onclick="HideKey()">Gizle</button>
             </div>
             <div class="col-12 col-md-4 mb-2">
                 <label>Combined KCV</label>
@@ -54,7 +73,7 @@
 
         </div>
         <div class="col-12 col-md-6 mb-2">
-            <label>Generate Key </label><br />
+            <label>Generate Random Key </label><br />
             <button formaction="/KeyGen/Generate?length=8" formmethod="post" class="btn btn-outline-secondary btn-sm me-2">Generate 64 bit</button>
             <button formaction="/KeyGen/Generate?length=16" formmethod="post" class="btn btn-outline-secondary btn-sm me-2">Generate 128 bit</button>
             <button formaction="/KeyGen/Generate?length=24" formmethod="post" class="btn btn-outline-secondary btn-sm me-2">Generate 192 bit</button>
@@ -62,33 +81,43 @@
         </div>
 
         <script>
-            function hideComponent(idx) {
+            function showComponent(idx) {
+                var input = document.getElementById("component" + idx);
+                if (input) {
+                    input.type = "text";
+                }
+            }
+            function HideComponent(idx) {
                 var input = document.getElementById("component" + idx);
                 if (input) {
                     input.type = "password";
-                    input.readOnly = true; // bir daha açılmaz/güncellenmez
                 }
             }
+            
         </script>
+
         @for (int i = 0; i < 3; i++)
         {
             <div class="row mb-2 align-items-center">
                 <div class="col-md-6">
                     <label>Component @(i + 1)</label>
-                    <input id="component@(i + 1)" name="component@(i + 1)" value="@components[i]" class="form-control" type="text" />
+                    <input id="component@(i + 1)" name="component@(i + 1)" value="@components[i]" class="form-control" type="password" />
                 </div>
                 <div class="col-md-2">
                         @foreach (var length in keyLength)
                         {
                             <button type="submit" formaction="/KeyGen/GenerateComp?which=@(i + 1)&length=@length&algorithm=@algorithm&forceOdd=@forceOdd"
                                     formmethod="post" class="btn btn-outline-secondary btn-sm">
-                            Generate Component @(i + 1) @length
+                            Generate Random Component @(i + 1) @length
                             </button>
                         }
                    
                 </div>
                 <div class="col-md-2">
-                    <button type="button" class="btn btn-warning btn-sm" onclick="hideComponent(@(i + 1))">Gizle</button>
+                    <button type="button" class="btn btn-warning btn-sm" onclick="showComponent(@(i + 1))">Göster</button>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-warning btn-sm" onclick="HideComponent(@(i + 1))">Gizle</button>
                 </div>
                 <div class="col-md-2">
                     <label>KCV</label>

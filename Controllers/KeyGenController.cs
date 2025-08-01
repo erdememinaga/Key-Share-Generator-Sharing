@@ -37,16 +37,15 @@ namespace Shamir.Controllers
                 .Select(i => Convert.ToByte(combinedKeyHex.Substring(i * 2, 2), 16))
                 .ToArray();
 
-            // 2 random component üret
             byte[] c1 = GenerateStrongKey(algorithm, keyByteLength, forceOdd);
             byte[] c2 = GenerateStrongKey(algorithm, keyByteLength, forceOdd);
 
-            // c3 = combined ⊕ c1 ⊕ c2
+            // xor
             byte[] c3 = new byte[keyByteLength];
             for (int i = 0; i < keyByteLength; i++)
                 c3[i] = (byte)(combinedKey[i] ^ c1[i] ^ c2[i]);
 
-            // KCV/CKCV hesapla
+            // KCV/CKCV
             string[] componentKCVs = new string[3];
             string[] componentCKCVs = new string[3];
             var keys = new[] { c1, c2, c3 };
@@ -56,7 +55,7 @@ namespace Shamir.Controllers
                 componentCKCVs[i] = algorithm == "AES" ? CalculateCKCV(keys[i]) : null;
             }
 
-            // Combined için KCV/CKCV
+            // Combined KCV/CKCV
             ViewBag.CombinedKey = BitConverter.ToString(combinedKey).Replace("-", "");
             ViewBag.KCV = CalculateKCV(combinedKey, algorithm);
             ViewBag.CKCV = algorithm == "AES" ? CalculateCKCV(combinedKey) : null;
@@ -200,7 +199,7 @@ namespace Shamir.Controllers
             if (newKey == null)
             {
                 ViewBag.Error = "Güçlü key üretilemedi, tekrar deneyin.";
-                // ViewBag'leri doldur ve Index'e dön:
+                // ViewBag'leri doldur ve Index'e dön
                 ViewBag.Components = new string[3];
                 ViewBag.ComponentKCVs = new string[3];
                 ViewBag.ComponentCKCVs = new string[3];
@@ -244,7 +243,7 @@ namespace Shamir.Controllers
         }
 
 
-        // --- Utility Fonksiyonlar ---
+        // --- Fonksiyonlar ---
 
         private static bool KeyLengthValid(string algorithm, int length)
         {
@@ -303,13 +302,12 @@ namespace Shamir.Controllers
                 }
 
                 retry++;
-                if (retry > 100) return null; // <-- FIX: return null (byte[]), not string
+                if (retry > 100) return null; 
             } while (!valid);
 
             return key;
         }
 
-        // KCV: ilk 3 byte (6 hex)
         private string CalculateKCV(byte[] key, string algorithm)
         {
             byte[] block = algorithm == "AES" ? new byte[16] : new byte[8];
@@ -324,7 +322,6 @@ namespace Shamir.Controllers
             return BitConverter.ToString(encrypted).Replace("-", "").Substring(0, 6);
         }
 
-        // CKCV: AES için CMAC(0x00..00), ilk 5 byte (10 hex karakter)
         private string CalculateCKCV(byte[] key)
         {
             byte[] msg = new byte[16];
@@ -332,7 +329,6 @@ namespace Shamir.Controllers
             return BitConverter.ToString(cmac).Replace("-", "").Substring(0, 10);
         }
 
-        // AES-CMAC, NIST SP 800-38B uyumlu
         public static byte[] AesCmac(byte[] key, byte[] message)
         {
             using (var aes = new AesManaged { Key = key, Mode = CipherMode.ECB, Padding = PaddingMode.None })

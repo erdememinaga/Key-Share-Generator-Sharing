@@ -12,8 +12,6 @@ public class ShamirController : Controller
         return View();
     }
 
-    // Replace all usages of s.SerializeToString() with s.ToString() since 'Share' does not have a SerializeToString method but does have ToString().
-
     [HttpPost]
     public IActionResult Split(string secretInput, int total, int threshold, string format = "text")
     {
